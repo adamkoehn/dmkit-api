@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  dmkit
+  
+  Sample SAM Template for dmkit
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 128
+
+Resources:
+  Api:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: api
+      Domain:
+        CertificateArn: arn:aws:acm:us-east-1:398671268273:certificate/1d71d50b-c2ec-46ca-94cf-064594efbdec
+        DomainName: dmkit.adamander.com
+        Route53:
+          HostedZoneId: Z05310182UMZGGY2WKGM3
+          IpV6: true
+
+  Npc:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      Architectures:
+        - x86_64
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /npc
+            Method: GET
+            RestApiId:
+              Ref: Api
+    Metadata:
+      DockerTag: provided.al2023
+      DockerContext: ./npc
+      Dockerfile: Dockerfile
+
+  Treasure:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      Architectures:
+        - x86_64
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /treasure
+            Method: GET
+            RestApiId:
+              Ref: Api
+    Metadata:
+      DockerTag: provided.al2023
+      DockerContext: ./treasure
+      Dockerfile: Dockerfile
+
+Outputs:
+  NpcAPI:
+    Description: "API Gateway endpoint URL for generating random NPCs"
+    Value: !Sub "https://dmkit.adamander.com/api/npc/"
+  TreasureAPI:
+    Description: "API Gateway endpoint URL for generating treasure hoards"
+    Value: !Sub "https://dmkit.adamander.com/api/treasure/"
